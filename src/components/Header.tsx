@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, UserPlus } from 'lucide-react';
+import { Menu, X, LogIn, UserPlus, User } from 'lucide-react';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onShowLogin: () => void;
+  onShowSignup: () => void;
+  isLoggedIn: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ onShowLogin, onShowSignup, isLoggedIn }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -45,14 +51,31 @@ const Header: React.FC = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
-            <button className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200">
-              <LogIn size={18} />
-              <span>Login</span>
-            </button>
-            <button className="flex items-center space-x-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium">
-              <UserPlus size={18} />
-              <span>Sign Up</span>
-            </button>
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-4">
+                <button className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200">
+                  <User size={18} />
+                  <span>Dashboard</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <button 
+                  onClick={onShowLogin}
+                  className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200"
+                >
+                  <LogIn size={18} />
+                  <span>Login</span>
+                </button>
+                <button 
+                  onClick={onShowSignup}
+                  className="flex items-center space-x-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium"
+                >
+                  <UserPlus size={18} />
+                  <span>Sign Up</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,14 +103,29 @@ const Header: React.FC = () => {
                 </a>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
-                <button className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200">
-                  <LogIn size={18} />
-                  <span>Login</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium">
-                  <UserPlus size={18} />
-                  <span>Sign Up</span>
-                </button>
+                {isLoggedIn ? (
+                  <button className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200">
+                    <User size={18} />
+                    <span>Dashboard</span>
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={onShowLogin}
+                      className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200"
+                    >
+                      <LogIn size={18} />
+                      <span>Login</span>
+                    </button>
+                    <button 
+                      onClick={onShowSignup}
+                      className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium"
+                    >
+                      <UserPlus size={18} />
+                      <span>Sign Up</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

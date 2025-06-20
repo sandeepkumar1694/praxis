@@ -5,7 +5,7 @@ This repository contains the source code for the Praxis Premium website. Praxis 
 ## File Structure
 
 The project is organized as follows:
-
+//
 - **`.bolt/`**: Configuration files for the Bolt development environment.
 - **`public/`**: Contains static assets that are directly served by the web server (e.g., `index.html` before processing by Vite).
 - **`src/`**: Contains the main source code for the application.
@@ -56,7 +56,7 @@ The project is organized as follows:
 - **`tsconfig.node.json`**: TypeScript configuration for Node.js specific parts (like build scripts).
 - **`vite.config.ts`**: Configuration file for Vite.
 - **`README.md`**: This file, providing information about the project.
-
+//
 This structure separates concerns by grouping components by function (auth, ui, general page components) and keeps configuration files at the root level.
 
 ## Features

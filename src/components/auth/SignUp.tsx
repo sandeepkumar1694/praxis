@@ -5,9 +5,10 @@ import { Eye, EyeOff } from 'lucide-react';
 
 interface SignUpProps {
   onToggleAuth: () => void;
+  onSignupSuccess?: () => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onToggleAuth }) => {
+const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -62,6 +63,11 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth }) => {
       
       // Handle successful signup
       console.log('Account created successfully');
+      
+      // Call signup success callback if provided
+      if (onSignupSuccess) {
+        onSignupSuccess();
+      }
       
     } catch (error) {
       console.error('Signup failed:', error);

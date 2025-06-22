@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SignUp from './components/auth/SignUp';
 import Login from './components/auth/Login';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ProblemStatement from './components/ProblemStatement';
@@ -50,30 +52,43 @@ function App() {
     setIsLoggedIn(true);
     setCurrentView('main');
   };
+  const handleSignupSuccess = () => {
+    // Redirect to onboarding after successful signup
+    window.location.href = '/onboarding';
+  };
 
-  // Render authentication views
-  if (currentView === 'login') {
-    return <Login onToggleAuth={handleToggleAuth} onLoginSuccess={handleLoginSuccess} />;
-  }
-
-  if (currentView === 'signup') {
-    return <SignUp onToggleAuth={handleToggleAuth} />;
-  }
-
-  // Render main site
   return (
-    <div className="min-h-screen bg-white">
-      <Header onShowLogin={handleShowLogin} onShowSignup={handleShowSignup} isLoggedIn={isLoggedIn} />
-      <main>
-        <Hero />
-        <ProblemStatement />
-        <SolutionOverview />
-        <FeatureShowcase />
-        <PerformanceScore />
-        <CallToAction />
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingFlow />} />
+        <Route path="*" element={
+          <>
+            {/* Render authentication views */}
+            {currentView === 'login' && (
+              <Login onToggleAuth={handleToggleAuth} onLoginSuccess={handleLoginSuccess} />
+            )}
+            {currentView === 'signup' && (
+              <SignUp onToggleAuth={handleToggleAuth} onSignupSuccess={handleSignupSuccess} />
+            )}
+            {/* Render main site */}
+            {currentView === 'main' && (
+              <div className="min-h-screen bg-white">
+                <Header onShowLogin={handleShowLogin} onShowSignup={handleShowSignup} isLoggedIn={isLoggedIn} />
+                <main>
+                  <Hero />
+                  <ProblemStatement />
+                  <SolutionOverview />
+                  <FeatureShowcase />
+                  <PerformanceScore />
+                  <CallToAction />
+                </main>
+                <Footer />
+              </div>
+            )}
+          </>
+        } />
+      </Routes>
+    </Router>
   );
 }
 

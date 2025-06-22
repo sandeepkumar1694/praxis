@@ -3,7 +3,7 @@ import { Check } from 'lucide-react';
 
 interface StepperComponentProps {
   currentStep: number;
-  totalSteps: number;
+  totalSteps: number; 
 }
 
 const StepperComponent: React.FC<StepperComponentProps> = ({ currentStep, totalSteps }) => {

@@ -12,11 +12,18 @@ export interface OnboardingData {
   branch: string;
   graduationYear: string;
   
-  // Step 3 - Role Selection
+  // Step 3 - Skill Assessment
+  selectedSkills: string[];
+  
+  // Step 4 - Role Selection
   role: string;
   
-  // Step 4 - Company Preference
+  // Step 5 - Company Preference
   companyPreference: string;
+  
+  // Step 6 - Mission Statement
+  primaryGoal: string;
+  termsAgreed: boolean;
 }
 
 export interface ValidationErrors {

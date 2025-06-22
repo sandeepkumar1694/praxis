@@ -58,6 +58,18 @@ export const validateAcademicsStep = (data: Partial<OnboardingData>): Validation
   return errors;
 };
 
+export const validateSkillsStep = (data: Partial<OnboardingData>): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  if (!data.selectedSkills || data.selectedSkills.length === 0) {
+    errors.selectedSkills = 'Please select at least one skill';
+  } else if (data.selectedSkills.length < 3) {
+    errors.selectedSkills = 'Please select at least 3 skills to better tailor your experience';
+  }
+
+  return errors;
+};
+
 export const validateRoleStep = (data: Partial<OnboardingData>): ValidationErrors => {
   const errors: ValidationErrors = {};
 
@@ -73,6 +85,20 @@ export const validateCompanyStep = (data: Partial<OnboardingData>): ValidationEr
 
   if (!data.companyPreference) {
     errors.companyPreference = 'Please select a company preference';
+  }
+
+  return errors;
+};
+
+export const validateMissionStep = (data: Partial<OnboardingData>): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  if (!data.primaryGoal) {
+    errors.primaryGoal = 'Please select your primary goal';
+  }
+
+  if (!data.termsAgreed) {
+    errors.termsAgreed = 'You must agree to the terms to continue';
   }
 
   return errors;

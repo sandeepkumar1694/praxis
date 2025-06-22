@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import AuthCard from './AuthCard';
 import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { validateEmail, getAuthErrorMessage } from '../../utils/auth';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface LoginProps {
-  onToggleAuth: () => void;
-  onLoginSuccess: () => void;
+  onToggleAuth?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
+const Login: React.FC<LoginProps> = ({ onToggleAuth }) => {
+  const { signIn, signInWithGoogle, signInWithGitHub, user, loading } = useAuth();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect if already authenticated
+  if (user) {
+    const from = location.state?.from?.pathname || '/dashboard';
+    return <Navigate to={from} replace />;
+  }
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -42,22 +53,15 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
     
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Handle successful login
-      console.log('Login successful');
-      onLoginSuccess();
-      
-    } catch (error) {
-      console.error('Login failed:', error);
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (error) {
       setErrors({ submit: 'Invalid email or password. Please try again.' });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsSubmitting(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,9 +74,31 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle();
+  };
+
+  const handleGitHubSignIn = async () => {
+    await signInWithGitHub();
+  };
+
+  if (loading) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout>
-      <AuthCard title="Welcome Back">
+      <AuthCard 
+        title="Welcome Back" 
+        onGoogleAuth={handleGoogleSignIn}
+        onGithubAuth={handleGitHubSignIn}
+      >
         <form onSubmit={handleSubmit} method="POST" className="space-y-4">
           {/* Email Field */}
           <div>
@@ -138,6 +164,7 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
           <div className="flex justify-end">
             <button
               type="button"
+              onClick={() => window.location.href = '/auth/forgot-password'}
               className="text-sm text-primary hover:underline font-medium"
             >
               Forgot Password?
@@ -154,10 +181,17 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting || loading}
             className="w-full h-11 bg-primary text-white rounded-md font-inter font-medium text-base hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Signing In...' : 'Log In'}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center space-x-2">
+                <LoadingSpinner size="sm" color="text-white" />
+                <span>Signing In...</span>
+              </div>
+            ) : (
+              'Log In'
+            )}
           </button>
         </form>
 
@@ -165,12 +199,21 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth, onLoginSuccess }) => {
         <div className="text-center mt-6">
           <p className="text-sm font-inter text-text-secondary">
             Need an account?{' '}
-            <button
-              onClick={onToggleAuth}
-              className="text-primary hover:underline font-medium"
-            >
-              Sign Up
-            </button>
+            {onToggleAuth ? (
+              <button
+                onClick={onToggleAuth}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign Up
+              </button>
+            ) : (
+              <a
+                href="/auth/signup"
+                className="text-primary hover:underline font-medium"
+              >
+                Sign Up
+              </a>
+            )}
           </p>
         </div>
       </AuthCard>

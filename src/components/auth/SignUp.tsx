@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import AuthCard from './AuthCard';
 import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { validateEmail, validatePassword, getAuthErrorMessage } from '../../utils/auth';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface SignUpProps {
-  onToggleAuth: () => void;
-  onSignupSuccess?: () => void;
+  onToggleAuth?: () => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
+const SignUp: React.FC<SignUpProps> = ({ onToggleAuth }) => {
+  const { signUp, signInWithGoogle, signInWithGitHub, user, loading } = useAuth();
+  const location = useLocation();
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -17,10 +23,23 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect if already authenticated
+  if (user) {
+    const from = location.state?.from?.pathname || '/dashboard';
+    return <Navigate to={from} replace />;
+  }
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+
+    // Full name validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Full name must be at least 2 characters';
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,26 +74,15 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
     
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Handle successful signup
-      console.log('Account created successfully');
-      
-      // Call signup success callback if provided
-      if (onSignupSuccess) {
-        onSignupSuccess();
-      }
-      
-    } catch (error) {
-      console.error('Signup failed:', error);
+    const { error } = await signUp(formData.email, formData.password, formData.fullName);
+    
+    if (error) {
       setErrors({ submit: 'Failed to create account. Please try again.' });
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsSubmitting(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,10 +95,57 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle();
+  };
+
+  const handleGitHubSignIn = async () => {
+    await signInWithGitHub();
+  };
+
+  if (loading) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size="lg" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout>
-      <AuthCard title="Create Your Account">
+      <AuthCard 
+        title="Create Your Account"
+        onGoogleAuth={handleGoogleSignIn}
+        onGithubAuth={handleGitHubSignIn}
+      >
         <form onSubmit={handleSubmit} method="POST" className="space-y-4">
+          {/* Full Name Field */}
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-medium text-text-primary mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              autoComplete="name"
+              className={`w-full h-11 px-4 border rounded-md font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
+                errors.fullName ? 'border-red-500' : 'border-secondary'
+              }`}
+              placeholder="Enter your full name"
+              aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+            />
+            {errors.fullName && (
+              <p id="fullName-error" className="mt-1 text-sm text-red-500">
+                {errors.fullName}
+              </p>
+            )}
+          </div>
+
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
@@ -196,10 +251,17 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting || loading}
             className="w-full h-11 bg-primary text-white rounded-md font-inter font-medium text-base hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center space-x-2">
+                <LoadingSpinner size="sm" color="text-white" />
+                <span>Creating Account...</span>
+              </div>
+            ) : (
+              'Create Account'
+            )}
           </button>
         </form>
 
@@ -207,12 +269,21 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth, onSignupSuccess }) => {
         <div className="text-center mt-6">
           <p className="text-sm font-inter text-text-secondary">
             Already have an account?{' '}
-            <button
-              onClick={onToggleAuth}
-              className="text-primary hover:underline font-medium"
-            >
-              Log In
-            </button>
+            {onToggleAuth ? (
+              <button
+                onClick={onToggleAuth}
+                className="text-primary hover:underline font-medium"
+              >
+                Log In
+              </button>
+            ) : (
+              <a
+                href="/auth/login"
+                className="text-primary hover:underline font-medium"
+              >
+                Log In
+              </a>
+            )}
           </p>
         </div>
       </AuthCard>

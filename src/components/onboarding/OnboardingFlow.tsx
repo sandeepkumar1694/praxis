@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import OnboardingLayout from './OnboardingLayout';
 import StepperComponent from './StepperComponent';
 import ProfileStep from './steps/ProfileStep';
@@ -21,11 +23,22 @@ import {
 } from '../../utils/onboardingValidation';
 
 const OnboardingFlow: React.FC = () => {
-  const navigate = useNavigate();
+  const { user, updateProfile, loading } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [currentStep, setCurrentStep] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({});
   const [errors, setErrors] = useState<ValidationErrors>({});
+
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // Redirect if already completed onboarding
+  if (!loading && user?.profile?.onboarding_complete) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const steps = [
     { component: ProfileStep, validate: validateProfileStep },
@@ -92,14 +105,32 @@ const OnboardingFlow: React.FC = () => {
   };
 
   const handleComplete = () => {
-    // Clear onboarding data from localStorage
-    localStorage.removeItem('onboardingData');
-    
-    // Save completed onboarding data (you can send this to your API)
-    console.log('Onboarding completed:', data);
-    
-    // Redirect to dashboard
-    navigate('/dashboard');
+    const completeOnboarding = async () => {
+      try {
+        // Update profile to mark onboarding as complete
+        const { error } = await updateProfile({
+          onboarding_complete: true,
+        });
+
+        if (error) {
+          showError('Failed to complete onboarding. Please try again.');
+          return;
+        }
+
+        // Clear onboarding data from localStorage
+        localStorage.removeItem('onboardingData');
+        
+        // Save completed onboarding data (you can send this to your API later)
+        console.log('Onboarding completed:', data);
+        
+        showSuccess('Welcome to Praxis! Your journey begins now.');
+      } catch (error) {
+        console.error('Onboarding completion error:', error);
+        showError('Failed to complete onboarding. Please try again.');
+      }
+    };
+
+    completeOnboarding();
   };
 
   const CurrentStepComponent = steps[currentStep - 1].component;

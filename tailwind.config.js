@@ -14,6 +14,8 @@ export default {
         'text-primary': '#0D1117',
         'text-secondary': '#4A5568',
         'dark-bg': '#0D1117',
+        'dashboard-bg': '#161B22',
+        'dashboard-card': '#21262D',
       },
       spacing: {
         'xs': '4px',

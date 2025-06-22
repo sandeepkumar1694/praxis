@@ -17,6 +17,7 @@ import PerformanceScore from './components/PerformanceScore';
 import CallToAction from './components/CallToAction';
 import Footer from './components/Footer';
 import ForgotPassword from './components/auth/ForgotPassword';
+import Dashboard from './components/dashboard/Dashboard';
 
 function App() {
   return (
@@ -126,18 +127,6 @@ const LandingPage: React.FC = () => {
         <CallToAction />
       </main>
       <Footer />
-    </div>
-  );
-};
-
-// Temporary Dashboard Component
-const Dashboard: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-text-primary mb-4">Welcome to Praxis Dashboard</h1>
-        <p className="text-text-secondary">Your coding challenges await!</p>
-      </div>
     </div>
   );
 };

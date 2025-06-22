@@ -190,34 +190,3 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
-                    <User size={18} />
-                    <span>Dashboard</span>
-                  </button>
-                ) : (
-                  <>
-                    <button 
-                      onClick={onShowLogin}
-                      className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200"
-                    >
-                      <LogIn size={18} />
-                      <span>Login</span>
-                    </button>
-                    <button 
-                      onClick={onShowSignup}
-                      className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium"
-                    >
-                      <UserPlus size={18} />
-                      <span>Sign Up</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-    </header>
-  );
-};
-
-export default Header;

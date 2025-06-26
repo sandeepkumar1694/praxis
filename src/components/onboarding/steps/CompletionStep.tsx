@@ -6,7 +6,7 @@ interface CompletionStepProps {
 }
 
 const CompletionStep: React.FC<CompletionStepProps> = ({ onComplete }) => {
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(2);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const CompletionStep: React.FC<CompletionStepProps> = ({ onComplete }) => {
         </div>
 
         <p className="text-text-secondary">
-          Redirecting to your dashboard in {countdown} seconds...
+          {countdown > 0 ? `Redirecting to your dashboard in ${countdown} seconds...` : 'Redirecting now...'}
         </p>
       </div>
 

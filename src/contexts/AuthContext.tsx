@@ -250,7 +250,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) throw error;
 
       // Refresh the profile data
-      await refreshProfile();
+      const updatedProfile = await fetchProfile(authState.user.id);
+      if (updatedProfile) {
+        setAuthState(prev => ({
+          ...prev,
+          user: prev.user ? { ...prev.user, profile: updatedProfile } : null,
+        }));
+      }
+      
       showSuccess('Profile updated successfully');
       return { error: null };
     } catch (error) {

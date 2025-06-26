@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -25,6 +25,7 @@ import {
 const OnboardingFlow: React.FC = () => {
   const { user, updateProfile, loading } = useAuth();
   const { showSuccess, showError } = useNotification();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({});
@@ -105,7 +106,7 @@ const OnboardingFlow: React.FC = () => {
   };
 
   const handleComplete = () => {
-    const completeOnboarding = async () => {
+    const completeOnboarding = async (): Promise<boolean> => {
       try {
         // Update profile to mark onboarding as complete
         const { error } = await updateProfile({
@@ -114,7 +115,7 @@ const OnboardingFlow: React.FC = () => {
 
         if (error) {
           showError('Failed to complete onboarding. Please try again.');
-          return;
+          return false;
         }
 
         // Clear onboarding data from localStorage
@@ -124,13 +125,26 @@ const OnboardingFlow: React.FC = () => {
         console.log('Onboarding completed:', data);
         
         showSuccess('Welcome to Praxis! Your journey begins now.');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 1000);
+        
+        return true;
       } catch (error) {
         console.error('Onboarding completion error:', error);
         showError('Failed to complete onboarding. Please try again.');
+        return false;
       }
     };
 
-    completeOnboarding();
+    completeOnboarding().then((success) => {
+      if (!success) {
+        // Reset to previous step if completion failed
+        setCurrentStep(6);
+      }
+    });
   };
 
   const CurrentStepComponent = steps[currentStep - 1].component;

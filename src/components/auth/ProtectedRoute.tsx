@@ -36,11 +36,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check onboarding requirement
   if (requireOnboarding && user && !user.profile?.onboarding_complete) {
-    return <Navigate to="/onboarding" replace />;
+    // Only redirect to onboarding if we're not already there
+    if (location.pathname !== '/onboarding') {
+      return <Navigate to="/onboarding" replace />;
+    }
   }
 
   // If user is authenticated but trying to access auth pages, redirect to dashboard
-  if (user && (location.pathname.startsWith('/auth') || location.pathname === '/')) {
+  if (user && !requireAuth && (location.pathname.startsWith('/auth') || location.pathname === '/')) {
     if (user.profile?.onboarding_complete) {
       return <Navigate to="/dashboard" replace />;
     } else {

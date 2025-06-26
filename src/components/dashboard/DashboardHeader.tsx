@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Bell, Search, Settings, User, LogOut, Menu, X } from 'lucide-react';
+import { Bell, Search, Settings, User, LogOut, Menu, X, Code } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardHeader: React.FC = () => {
   const { user, signOut } = useAuth();
   const { showSuccess } = useNotification();
+  const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -48,6 +50,16 @@ const DashboardHeader: React.FC = () => {
 
           {/* Header Actions */}
           <div className="flex items-center space-x-4">
+            {/* Daily Tasks */}
+            <button 
+              onClick={() => navigate('/tasks')}
+              className="hidden lg:flex items-center space-x-2 p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+              title="Daily Tasks"
+            >
+              <Code size={20} />
+              <span className="text-sm font-medium">Tasks</span>
+            </button>
+            
             {/* Notifications */}
             <button className="relative p-2 text-white/60 hover:text-white transition-colors duration-200 hover:bg-white/5 rounded-lg">
               <Bell size={20} />

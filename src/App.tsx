@@ -18,6 +18,9 @@ import CallToAction from './components/CallToAction';
 import Footer from './components/Footer';
 import ForgotPassword from './components/auth/ForgotPassword';
 import Dashboard from './components/dashboard/Dashboard';
+import DailyTasksList from './components/tasks/DailyTasksList';
+import TaskCompletion from './components/tasks/TaskCompletion';
+import TaskScorecard from './components/tasks/TaskScorecard';
 
 function App() {
   return (
@@ -77,6 +80,32 @@ function App() {
                 element={
                   <ProtectedRoute requireAuth={true} requireOnboarding={true}>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Task Routes */}
+              <Route 
+                path="/tasks" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <DailyTasksList />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/tasks/complete/:taskId" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <TaskCompletion />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/tasks/result/:submissionId" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <TaskScorecard />
                   </ProtectedRoute>
                 } 
               />

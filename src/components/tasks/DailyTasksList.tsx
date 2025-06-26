@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Code, Zap, Target, ChevronRight, Calendar } from 'lucide-react';
-import { DailyTask, UserSubmission } from '../../types/tasks';
+import { DailyTask, UserSubmission, TaskApiResponse } from '../../types/tasks';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { taskAPI } from '../../lib/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const DailyTasksList: React.FC = () => {
@@ -15,37 +16,6 @@ const DailyTasksList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [choosingTask, setChoosingTask] = useState<string | null>(null);
 
-  // Mock data - replace with actual API calls
-  const mockTasks: DailyTask[] = [
-    {
-      id: '1',
-      level: 'basic',
-      title: 'Array Sum Calculator',
-      description: 'Create a function that takes an array of numbers and returns their sum. Handle edge cases like empty arrays and non-numeric values.',
-      timeLimit: 30,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      level: 'intermediate',
-      title: 'API Rate Limiter',
-      description: 'Implement a rate limiter that allows a maximum of N requests per time window. Include proper error handling and cleanup mechanisms.',
-      timeLimit: 60,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '3',
-      level: 'pro',
-      title: 'Distributed Cache System',
-      description: 'Design and implement a distributed cache system with consistent hashing, replication, and failure recovery mechanisms.',
-      timeLimit: 120,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
-
   useEffect(() => {
     fetchDailyTasks();
   }, []);
@@ -53,18 +23,11 @@ const DailyTasksList: React.FC = () => {
   const fetchDailyTasks = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock: Check if user has already chosen a task today
-      const existingSubmission = localStorage.getItem(`task_submission_${user?.id}_${new Date().toDateString()}`);
-      if (existingSubmission) {
-        setUserSubmission(JSON.parse(existingSubmission));
-      }
-      
-      setTasks(mockTasks);
+      const data: TaskApiResponse = await taskAPI.getDailyTasks();
+      setTasks(data.tasks);
+      setUserSubmission(data.userSubmission);
     } catch (error) {
-      showError('Failed to load daily tasks');
+      showError(error instanceof Error ? error.message : 'Failed to load daily tasks');
     } finally {
       setLoading(false);
     }
@@ -76,32 +39,14 @@ const DailyTasksList: React.FC = () => {
     try {
       setChoosingTask(taskId);
       
-      // Simulate API call to choose task
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newSubmission: UserSubmission = {
-        id: `submission_${Date.now()}`,
-        userId: user!.id,
-        taskId,
-        chosenAt: new Date().toISOString(),
-        status: 'chosen',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Mock: Store in localStorage
-      localStorage.setItem(
-        `task_submission_${user?.id}_${new Date().toDateString()}`, 
-        JSON.stringify(newSubmission)
-      );
-      
+      const newSubmission = await taskAPI.chooseTask(taskId);
       setUserSubmission(newSubmission);
       showSuccess('Task selected! You can now start working on it.');
       
       // Navigate to task completion
       navigate(`/tasks/complete/${taskId}`);
     } catch (error) {
-      showError('Failed to select task');
+      showError(error instanceof Error ? error.message : 'Failed to select task');
     } finally {
       setChoosingTask(null);
     }
@@ -177,10 +122,10 @@ const DailyTasksList: React.FC = () => {
           {userSubmission && (
             <div className="bg-accent/20 border border-accent/30 rounded-lg p-4">
               <p className="text-accent font-medium">
-                You've already selected a task for today! 
+                You've already selected a task for today!
                 {userSubmission.status === 'chosen' && (
                   <button 
-                    onClick={() => navigate(`/tasks/complete/${userSubmission.taskId}`)}
+                    onClick={() => navigate(`/tasks/complete/${userSubmission.task_id}`)}
                     className="ml-2 underline hover:no-underline"
                   >
                     Continue working on it
@@ -203,7 +148,7 @@ const DailyTasksList: React.FC = () => {
         <div className="space-y-6">
           {tasks.map((task) => {
             const LevelIcon = getLevelIcon(task.level);
-            const isChosen = userSubmission?.taskId === task.id;
+            const isChosen = userSubmission?.task_id === task.id;
             const isDisabled = userSubmission && !isChosen;
             const isChoosing = choosingTask === task.id;
             
@@ -236,7 +181,7 @@ const DailyTasksList: React.FC = () => {
                         <div className="flex items-center space-x-4 text-sm text-white/60">
                           <div className="flex items-center space-x-1">
                             <Clock size={14} />
-                            <span>{task.timeLimit} minutes</span>
+                            <span>{task.time_limit_minutes} minutes</span>
                           </div>
                         </div>
                       </div>

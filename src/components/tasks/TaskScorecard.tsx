@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Award, TrendingUp, CheckCircle, AlertCircle, ArrowLeft, BarChart3, Eye, Code } from 'lucide-react';
-import { UserSubmission, DailyTask } from '../../types/tasks';
+import { UserSubmission, DailyTask, TaskResultResponse } from '../../types/tasks';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { taskAPI } from '../../lib/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
-import CircularProgress from '../ui/CircularProgress';
 
 const TaskScorecard: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -18,37 +18,6 @@ const TaskScorecard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCode, setShowCode] = useState(false);
 
-  // Mock task data
-  const mockTasks: Record<string, DailyTask> = {
-    '1': {
-      id: '1',
-      level: 'basic',
-      title: 'Array Sum Calculator',
-      description: 'Create a function that takes an array of numbers and returns their sum. Handle edge cases like empty arrays and non-numeric values.',
-      timeLimit: 30,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    '2': {
-      id: '2',
-      level: 'intermediate',
-      title: 'API Rate Limiter',
-      description: 'Implement a rate limiter that allows a maximum of N requests per time window. Include proper error handling and cleanup mechanisms.',
-      timeLimit: 60,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    '3': {
-      id: '3',
-      level: 'pro',
-      title: 'Distributed Cache System',
-      description: 'Design and implement a distributed cache system with consistent hashing, replication, and failure recovery mechanisms.',
-      timeLimit: 120,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-  };
-
   useEffect(() => {
     loadSubmissionResult();
   }, [submissionId]);
@@ -57,29 +26,17 @@ const TaskScorecard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load submission from localStorage (mock)
-      const submissionData = localStorage.getItem(`task_submission_${user?.id}_${new Date().toDateString()}`);
-      if (submissionData) {
-        const parsedSubmission = JSON.parse(submissionData);
-        if (parsedSubmission.id === submissionId) {
-          setSubmission(parsedSubmission);
-          
-          // Load associated task
-          if (mockTasks[parsedSubmission.taskId]) {
-            setTask(mockTasks[parsedSubmission.taskId]);
-          }
-        } else {
-          showError('Submission not found');
-          navigate('/tasks');
-          return;
-        }
-      } else {
+      if (!submissionId) {
         showError('Submission not found');
         navigate('/tasks');
         return;
       }
+      
+      const result: TaskResultResponse = await taskAPI.getTaskResult(submissionId);
+      setSubmission(result.submission);
+      setTask(result.task);
     } catch (error) {
-      showError('Failed to load submission result');
+      showError(error instanceof Error ? error.message : 'Failed to load submission result');
       navigate('/tasks');
     } finally {
       setLoading(false);
@@ -119,7 +76,21 @@ const TaskScorecard: React.FC = () => {
     return null;
   }
 
-  const { aiFeedback } = submission;
+  const { ai_feedback } = submission;
+  
+  if (!ai_feedback) {
+    return (
+      <div className="min-h-screen bg-dashboard-bg">
+        <div className="container mx-auto px-6 py-8 max-w-6xl">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-white/60">Evaluation not available</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dashboard-bg">
@@ -190,7 +161,7 @@ const TaskScorecard: React.FC = () => {
               </div>
 
               <p className="text-white/80 text-center">
-                {aiFeedback.overall}
+                {ai_feedback.overall}
               </p>
             </div>
           </div>
@@ -206,10 +177,10 @@ const TaskScorecard: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-6">
                 {[
-                  { label: 'Code Quality', score: aiFeedback.codeQuality, icon: Code },
-                  { label: 'Efficiency', score: aiFeedback.efficiency, icon: TrendingUp },
-                  { label: 'Readability', score: aiFeedback.readability, icon: Eye },
-                  { label: 'Correctness', score: aiFeedback.correctness, icon: CheckCircle },
+                  { label: 'Code Quality', score: ai_feedback.codeQuality, icon: Code },
+                  { label: 'Efficiency', score: ai_feedback.efficiency, icon: TrendingUp },
+                  { label: 'Readability', score: ai_feedback.readability, icon: Eye },
+                  { label: 'Correctness', score: ai_feedback.correctness, icon: CheckCircle },
                 ].map((metric, index) => (
                   <div key={index} className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -240,7 +211,7 @@ const TaskScorecard: React.FC = () => {
                   <span>Strengths</span>
                 </h3>
                 <ul className="space-y-2">
-                  {aiFeedback.strengths.map((strength, index) => (
+                  {ai_feedback.strengths.map((strength, index) => (
                     <li key={index} className="flex items-start space-x-2 text-green-300/80">
                       <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{strength}</span>
@@ -255,7 +226,7 @@ const TaskScorecard: React.FC = () => {
                   <span>Areas for Improvement</span>
                 </h3>
                 <ul className="space-y-2">
-                  {aiFeedback.improvements.map((improvement, index) => (
+                  {ai_feedback.improvements.map((improvement, index) => (
                     <li key={index} className="flex items-start space-x-2 text-yellow-300/80">
                       <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{improvement}</span>
@@ -272,7 +243,7 @@ const TaskScorecard: React.FC = () => {
                 <span>AI Suggestions</span>
               </h3>
               <ul className="space-y-3">
-                {aiFeedback.suggestions.map((suggestion, index) => (
+                {ai_feedback.suggestions.map((suggestion, index) => (
                   <li key={index} className="flex items-start space-x-3 text-blue-300/80">
                     <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-blue-400 text-xs font-bold">{index + 1}</span>
@@ -284,7 +255,7 @@ const TaskScorecard: React.FC = () => {
             </div>
 
             {/* Submitted Code */}
-            {submission.submissionCode && (
+            {submission.submission_code && (
               <div className="bg-dashboard-card rounded-2xl border border-white/10 overflow-hidden">
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                   <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
@@ -302,7 +273,7 @@ const TaskScorecard: React.FC = () => {
                 {showCode && (
                   <div className="p-0">
                     <pre className="p-6 bg-gray-900 text-white font-mono text-sm overflow-x-auto">
-                      <code>{submission.submissionCode}</code>
+                      <code>{submission.submission_code}</code>
                     </pre>
                   </div>
                 )}

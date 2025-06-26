@@ -4,6 +4,8 @@ import { Clock, Code, Send, ArrowLeft, AlertCircle } from 'lucide-react';
 import { DailyTask, UserSubmission } from '../../types/tasks';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { taskAPI } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const TaskCompletion: React.FC = () => {
@@ -19,45 +21,14 @@ const TaskCompletion: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Mock task data
-  const mockTasks: Record<string, DailyTask> = {
-    '1': {
-      id: '1',
-      level: 'basic',
-      title: 'Array Sum Calculator',
-      description: 'Create a function that takes an array of numbers and returns their sum. Handle edge cases like empty arrays and non-numeric values.',
-      timeLimit: 30,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    '2': {
-      id: '2',
-      level: 'intermediate',
-      title: 'API Rate Limiter',
-      description: 'Implement a rate limiter that allows a maximum of N requests per time window. Include proper error handling and cleanup mechanisms.',
-      timeLimit: 60,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-    '3': {
-      id: '3',
-      level: 'pro',
-      title: 'Distributed Cache System',
-      description: 'Design and implement a distributed cache system with consistent hashing, replication, and failure recovery mechanisms.',
-      timeLimit: 120,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    },
-  };
-
   useEffect(() => {
     loadTaskAndSubmission();
   }, [taskId]);
 
   useEffect(() => {
-    if (submission && submission.chosenAt && task) {
-      const startTime = new Date(submission.chosenAt).getTime();
-      const timeLimit = task.timeLimit * 60 * 1000; // Convert to milliseconds
+    if (submission && submission.chosen_at && task) {
+      const startTime = new Date(submission.chosen_at).getTime();
+      const timeLimit = task.time_limit_minutes * 60 * 1000; // Convert to milliseconds
       
       const timer = setInterval(() => {
         const elapsed = Date.now() - startTime;
@@ -79,40 +50,40 @@ const TaskCompletion: React.FC = () => {
     try {
       setLoading(true);
       
-      if (!taskId || !mockTasks[taskId]) {
+      if (!taskId) {
         showError('Task not found');
         navigate('/tasks');
         return;
       }
 
-      // Load task
-      setTask(mockTasks[taskId]);
+      // Fetch task and user's submission
+      const { data: tasksData } = await taskAPI.getDailyTasks();
+      const foundTask = tasksData.tasks.find(t => t.id === taskId);
       
-      // Load user submission
-      const submissionData = localStorage.getItem(`task_submission_${user?.id}_${new Date().toDateString()}`);
-      if (submissionData) {
-        const parsedSubmission = JSON.parse(submissionData);
-        if (parsedSubmission.taskId === taskId) {
-          setSubmission(parsedSubmission);
-          setCode(parsedSubmission.submissionCode || '');
-          
-          // If already submitted, redirect to results
-          if (parsedSubmission.status === 'scored') {
-            navigate(`/tasks/result/${parsedSubmission.id}`);
-            return;
-          }
-        } else {
-          showError('You have not selected this task');
-          navigate('/tasks');
+      if (!foundTask) {
+        showError('Task not found');
+        navigate('/tasks');
+        return;
+      }
+      
+      setTask(foundTask);
+      
+      if (tasksData.userSubmission && tasksData.userSubmission.task_id === taskId) {
+        setSubmission(tasksData.userSubmission);
+        setCode(tasksData.userSubmission.submission_code || '');
+        
+        // If already submitted, redirect to results
+        if (tasksData.userSubmission.status === 'scored') {
+          navigate(`/tasks/result/${tasksData.userSubmission.id}`);
           return;
         }
       } else {
-        showError('No active task found');
+        showError('You have not selected this task');
         navigate('/tasks');
         return;
       }
     } catch (error) {
-      showError('Failed to load task');
+      showError(error instanceof Error ? error.message : 'Failed to load task');
       navigate('/tasks');
     } finally {
       setLoading(false);
@@ -125,7 +96,7 @@ const TaskCompletion: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!code.trim()) {
+    if (!code.trim() || !submission) {
       showError('Please write some code before submitting');
       return;
     }
@@ -133,63 +104,20 @@ const TaskCompletion: React.FC = () => {
     try {
       setSubmitting(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const updatedSubmission: UserSubmission = {
-        ...submission!,
-        submissionCode: code,
-        submittedAt: new Date().toISOString(),
-        status: 'submitted',
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Mock AI scoring
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const scoredSubmission: UserSubmission = {
-        ...updatedSubmission,
-        status: 'scored',
-        score: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-        aiFeedback: {
-          overall: 'Good solution with room for improvement. Your code demonstrates understanding of the core concepts.',
-          codeQuality: Math.floor(Math.random() * 20) + 80,
-          efficiency: Math.floor(Math.random() * 25) + 75,
-          readability: Math.floor(Math.random() * 20) + 80,
-          correctness: Math.floor(Math.random() * 15) + 85,
-          suggestions: [
-            'Consider adding input validation for edge cases',
-            'Add more descriptive variable names',
-            'Include error handling for potential failures'
-          ],
-          strengths: [
-            'Clean code structure',
-            'Good use of modern JavaScript features',
-            'Proper function organization'
-          ],
-          improvements: [
-            'Add comprehensive error handling',
-            'Optimize algorithm for better performance',
-            'Include more detailed comments'
-          ]
-        },
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Save to localStorage
-      localStorage.setItem(
-        `task_submission_${user?.id}_${new Date().toDateString()}`, 
-        JSON.stringify(scoredSubmission)
-      );
+      // Submit code for AI evaluation
+      await taskAPI.submitTaskForEvaluation(submission.id, code);
       
       showSuccess('Code submitted successfully! Redirecting to results...');
       
+      // Wait a moment for the evaluation to complete
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       setTimeout(() => {
-        navigate(`/tasks/result/${scoredSubmission.id}`);
+        navigate(`/tasks/result/${submission.id}`);
       }, 1500);
       
     } catch (error) {
-      showError('Failed to submit code');
+      showError(error instanceof Error ? error.message : 'Failed to submit code');
     } finally {
       setSubmitting(false);
     }
@@ -203,7 +131,7 @@ const TaskCompletion: React.FC = () => {
 
   const getTimeColor = () => {
     if (!timeLeft || !task) return 'text-white';
-    const percentage = timeLeft / (task.timeLimit * 60 * 1000);
+    const percentage = timeLeft / (task.time_limit_minutes * 60 * 1000);
     if (percentage > 0.5) return 'text-green-400';
     if (percentage > 0.25) return 'text-yellow-400';
     return 'text-red-400';

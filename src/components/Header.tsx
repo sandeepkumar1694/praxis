@@ -84,11 +84,11 @@ const Header: React.FC<HeaderProps> = ({
             {isLoggedIn ? (
               <div className="flex items-center space-x-4">
                 <a 
-                  href="/dashboard"
+                  href="/tasks"
                   className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200"
                 >
                   <User size={18} />
-                  <span>Dashboard</span>
+                  <span>Tasks</span>
                 </a>
                 <button 
                   onClick={handleSignOut}
@@ -147,11 +147,11 @@ const Header: React.FC<HeaderProps> = ({
                 {isLoggedIn ? (
                   <>
                     <a 
-                      href="/dashboard"
+                      href="/tasks"
                       className="flex items-center space-x-2 px-4 py-2 text-text-secondary hover:text-primary transition-colors duration-200"
                     >
                       <User size={18} />
-                      <span>Dashboard</span>
+                      <span>Tasks</span>
                     </a>
                     <button 
                       onClick={handleSignOut}

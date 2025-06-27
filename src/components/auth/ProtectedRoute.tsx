@@ -45,7 +45,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // If user is authenticated but trying to access auth pages, redirect to dashboard
   if (user && !requireAuth && (location.pathname.startsWith('/auth') || location.pathname === '/')) {
     if (user.profile?.onboarding_complete) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/tasks" replace />;
     } else {
       return <Navigate to="/onboarding" replace />;
     }

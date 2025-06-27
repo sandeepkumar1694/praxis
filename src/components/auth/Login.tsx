@@ -61,9 +61,9 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth }) => {
     if (error) {
       setErrors({ submit: 'Invalid email or password. Please try again.' });
     } else {
-      // Navigate to dashboard after successful login
+      // Navigate to tasks after successful login
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/tasks');
       }, 1000);
     }
 

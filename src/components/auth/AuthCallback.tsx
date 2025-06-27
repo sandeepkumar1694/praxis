@@ -31,7 +31,7 @@ const AuthCallback: React.FC = () => {
             .single();
 
           if (profile?.onboarding_complete) {
-            navigate('/dashboard');
+            navigate('/tasks');
           } else {
             navigate('/onboarding');
           }

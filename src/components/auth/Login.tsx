@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import AuthCard from './AuthCard';
 import { Eye, EyeOff } from 'lucide-react';
@@ -14,6 +14,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onToggleAuth }) => {
   const { signIn, signInWithGoogle, signInWithGitHub, user, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -59,6 +60,11 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth }) => {
     
     if (error) {
       setErrors({ submit: 'Invalid email or password. Please try again.' });
+    } else {
+      // Navigate to dashboard after successful login
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     }
 
     setIsSubmitting(false);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import AuthCard from './AuthCard';
 import { Eye, EyeOff } from 'lucide-react';
@@ -14,6 +14,7 @@ interface SignUpProps {
 const SignUp: React.FC<SignUpProps> = ({ onToggleAuth }) => {
   const { signUp, signInWithGoogle, signInWithGitHub, user, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -80,6 +81,11 @@ const SignUp: React.FC<SignUpProps> = ({ onToggleAuth }) => {
     
     if (error) {
       setErrors({ submit: 'Failed to create account. Please try again.' });
+    } else {
+      // Navigate to onboarding after successful signup
+      setTimeout(() => {
+        navigate('/onboarding');
+      }, 1000);
     }
 
     setIsSubmitting(false);

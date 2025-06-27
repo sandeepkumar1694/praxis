@@ -61,10 +61,10 @@ const Login: React.FC<LoginProps> = ({ onToggleAuth }) => {
     if (error) {
       setErrors({ submit: 'Invalid email or password. Please try again.' });
     } else {
-      // Navigate to dashboard after successful login
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+      // Successful login, AuthContext will update and ProtectedRoute will redirect.
+      // No explicit navigation here is needed as the component will re-render
+      // and the redirect logic at the top will handle it.
+      // navigate('/dashboard'); // Removed setTimeout and direct navigation
     }
 
     setIsSubmitting(false);

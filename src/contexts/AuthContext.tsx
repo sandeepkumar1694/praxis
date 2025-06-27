@@ -66,10 +66,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth state
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      updateAuthState(session?.user || null, session);
-    });
+    // Get initial session with error handling
+    const initializeSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session initialization error:', error);
+          // Clear invalid session data
+          await supabase.auth.signOut();
+          setAuthState({
+            user: null,
+            session: null,
+            loading: false,
+            initialized: true,
+          });
+          return;
+        }
+        
+        await updateAuthState(session?.user || null, session);
+      } catch (error) {
+        console.error('Failed to initialize session:', error);
+        // Clear any invalid session data
+        await supabase.auth.signOut();
+        setAuthState({
+          user: null,
+          session: null,
+          loading: false,
+          initialized: true,
+        });
+      }
+    };
+    
+    initializeSession();
 
     // Listen for auth changes
     const {

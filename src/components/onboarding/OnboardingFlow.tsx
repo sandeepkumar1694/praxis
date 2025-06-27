@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -26,6 +26,7 @@ const OnboardingFlow: React.FC = () => {
   const { user, updateProfile, loading } = useAuth();
   const { showSuccess, showError } = useNotification();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
   const [data, setData] = useState<Partial<OnboardingData>>({});
@@ -40,6 +41,13 @@ const OnboardingFlow: React.FC = () => {
   if (!loading && user?.profile?.onboarding_complete) {
     return <Navigate to="/dashboard" replace />;
   }
+
+  // Monitor user state for onboarding completion and navigate to dashboard
+  useEffect(() => {
+    if (user?.profile?.onboarding_complete && location.pathname === '/onboarding') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user?.profile?.onboarding_complete, navigate, location.pathname]);
 
   const steps = [
     { component: ProfileStep, validate: validateProfileStep },
@@ -125,11 +133,6 @@ const OnboardingFlow: React.FC = () => {
         console.log('Onboarding completed:', data);
         
         showSuccess('Welcome to Praxis! Your journey begins now.');
-        
-        // Redirect to dashboard
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 1000);
         
         return true;
       } catch (error) {

@@ -190,6 +190,7 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_TAVUS_REPLICA_ID=r9d30b0e55ac
 ```
 
 For the AI task system to work, you'll also need to add these variables to your Supabase project settings:
@@ -198,7 +199,7 @@ For the AI task system to work, you'll also need to add these variables to your 
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 GEMINI_API_KEY=your_gemini_api_key
 TAVUS_API_KEY=your_tavus_api_key
-TAVUS_REPLICA_ID=your_replica_id  
+TAVUS_REPLICA_ID=r9d30b0e55ac
 TAVUS_PERSONA_ID=your_persona_id
 ```
 

@@ -52,7 +52,7 @@ class TavusAPIService {
     return this.makeRequest<TavusSession>('/tavus-create-session', {
       method: 'POST',
       body: JSON.stringify({
-        replica_id: replicaId || 'r9d30b0e55ac',
+        replica_id: replicaId || import.meta.env.VITE_TAVUS_REPLICA_ID || 'r9d30b0e55ac',
         persona_id: personaId,
       }),
     });

@@ -13,7 +13,7 @@ const InterviewerPage: React.FC = () => {
   const [creatingPersona, setCreatingPersona] = useState(false);
   const [personaId, setPersonaId] = useState<string | null>(null);
   const [avatarSettings, setAvatarSettings] = useState({
-    replicaId: 'r9d30b0e55ac', // Default replica ID
+    replicaId: import.meta.env.VITE_TAVUS_REPLICA_ID || 'r9d30b0e55ac', // Default replica ID from env
     personaId: '', // Will be set after persona creation
     autoStart: false,
   });
@@ -249,7 +249,7 @@ const InterviewerPage: React.FC = () => {
               </div>
               
               <TavusAvatar
-                replicaId={avatarSettings.replicaId || 'r9d30b0e55ac'}
+                replicaId={avatarSettings.replicaId}
                 personaId={personaId || avatarSettings.personaId}
                 autoStart={avatarSettings.autoStart}
                 className="max-w-3xl mx-auto"

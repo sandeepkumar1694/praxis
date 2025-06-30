@@ -57,7 +57,7 @@ const TaskCompletion: React.FC = () => {
       }
 
       // Fetch task and user's submission
-      const { data: tasksData } = await taskAPI.getDailyTasks();
+      const tasksData = await taskAPI.getDailyTasks();
       const foundTask = tasksData.tasks.find(t => t.id === taskId);
       
       if (!foundTask) {

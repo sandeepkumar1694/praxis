@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { DailyTask, UserSubmission, TaskApiResponse, TaskResultResponse } from '../types/tasks';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+// Get the Supabase URL from the configured client
+const SUPABASE_URL = supabase.supabaseUrl;
 
 class TaskAPI {
   private async getAuthHeaders() {

@@ -18,6 +18,7 @@ import CallToAction from './components/CallToAction';
 import Footer from './components/Footer';
 import ForgotPassword from './components/auth/ForgotPassword';
 import Dashboard from './components/dashboard/Dashboard';
+import DashboardLayout from './components/dashboard/DashboardLayout';
 import DailyTasksList from './components/tasks/DailyTasksList';
 import TaskCompletion from './components/tasks/TaskCompletion';
 import TaskScorecard from './components/tasks/TaskScorecard';

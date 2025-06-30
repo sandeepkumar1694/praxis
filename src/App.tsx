@@ -28,6 +28,7 @@ import AITeamLeadPage from './components/pages/AITeamLeadPage';
 import WeeklyTasksPage from './components/pages/WeeklyTasksPage';
 import PerformancePage from './components/pages/PerformancePage';
 import AchievementsPage from './components/pages/AchievementsPage';
+import BoltBadge from './components/ui/BoltBadge';
 
 function App() {
   return (
@@ -178,6 +179,8 @@ function App() {
           </Router>
         </AuthProvider>
       </NotificationProvider>
+      {/* Bolt Badge - visible on all pages */}
+      <BoltBadge />
     </ErrorBoundary>
   );
 }

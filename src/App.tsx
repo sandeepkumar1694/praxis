@@ -21,6 +21,10 @@ import Dashboard from './components/dashboard/Dashboard';
 import DailyTasksList from './components/tasks/DailyTasksList';
 import TaskCompletion from './components/tasks/TaskCompletion';
 import TaskScorecard from './components/tasks/TaskScorecard';
+import CompletedTasksList from './components/tasks/CompletedTasksList';
+import TaskGenerator from './components/tasks/TaskGenerator';
+import InterviewerPage from './components/pages/InterviewerPage';
+import AITeamLeadPage from './components/pages/AITeamLeadPage';
 
 function App() {
   return (
@@ -94,6 +98,22 @@ function App() {
                 } 
               />
               <Route 
+                path="/completed-tasks" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <CompletedTasksList />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/generate-tasks" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <TaskGenerator />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/tasks/complete/:taskId" 
                 element={
                   <ProtectedRoute requireAuth={true} requireOnboarding={true}>
@@ -106,6 +126,24 @@ function App() {
                 element={
                   <ProtectedRoute requireAuth={true} requireOnboarding={true}>
                     <TaskScorecard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* New Feature Routes */}
+              <Route 
+                path="/interviewer" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <InterviewerPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/ai-team-lead" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <AITeamLeadPage />
                   </ProtectedRoute>
                 } 
               />

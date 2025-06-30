@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { taskAPI } from '../../lib/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import AuthenticatedLayout from '../layout/AuthenticatedLayout';
 
 const TaskScorecard: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -59,7 +60,7 @@ const TaskScorecard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dashboard-bg">
+      <AuthenticatedLayout>
         <div className="container mx-auto px-6 py-8 max-w-6xl">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -68,7 +69,7 @@ const TaskScorecard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </AuthenticatedLayout>
     );
   }
 
@@ -80,7 +81,7 @@ const TaskScorecard: React.FC = () => {
   
   if (!ai_feedback) {
     return (
-      <div className="min-h-screen bg-dashboard-bg">
+      <AuthenticatedLayout>
         <div className="container mx-auto px-6 py-8 max-w-6xl">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -88,12 +89,12 @@ const TaskScorecard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </AuthenticatedLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <AuthenticatedLayout>
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -292,7 +293,7 @@ const TaskScorecard: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

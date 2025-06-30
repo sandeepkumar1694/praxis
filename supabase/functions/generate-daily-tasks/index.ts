@@ -7,6 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+interface GenerateDailyTasksRequest {
+  difficultyDistribution?: {
+    basic: number;
+    intermediate: number;
+    pro: number;
+  };
+}
+
 interface GeneratedTask {
   title: string;
   description: string;
@@ -26,6 +34,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Parse request body for difficulty preferences
+    const requestBody = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    const { difficultyDistribution }: GenerateDailyTasksRequest = requestBody;
+    
+    // Default distribution if not provided
+    const distribution = difficultyDistribution || { basic: 1, intermediate: 1, pro: 1 };
+    
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -59,7 +74,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Generate new tasks using Gemini 2.5 Flash
+    // Generate new tasks with custom difficulty distribution using Gemini 2.5 Flash
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
       throw new Error('GEMINI_API_KEY not configured');
@@ -68,9 +83,15 @@ Deno.serve(async (req: Request) => {
     // Initialize Gemini AI client
     const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
-    const prompt = `Generate 3 coding challenges for a software developer, one basic, one intermediate, and one professional level. Each challenge should be realistic and resemble actual problems from tech companies.
+    const totalTasks = distribution.basic + distribution.intermediate + distribution.pro;
+    const prompt = `Generate ${totalTasks} coding challenges for a software developer with the following difficulty distribution:
+- ${distribution.basic} basic level tasks
+- ${distribution.intermediate} intermediate level tasks  
+- ${distribution.pro} professional level tasks
 
-Please respond with a valid JSON array containing exactly 3 objects with these fields:
+Each challenge should be realistic and resemble actual problems from tech companies.
+
+Please respond with a valid JSON array containing exactly ${totalTasks} objects with these fields:
 - title: string (concise, professional title)
 - description: string (detailed problem description, 2-3 sentences)
 - level: string (must be exactly "basic", "intermediate", or "pro")
@@ -80,11 +101,11 @@ Please respond with a valid JSON array containing exactly 3 objects with these f
 - company_context: string (brief context about the company/team scenario)
 
 Focus on practical, real-world problems like:
-- Basic: Data manipulation, simple algorithms
-- Intermediate: API design, system components
-- Pro: Architecture, distributed systems, optimization
+- Basic: Data manipulation, simple algorithms, string processing
+- Intermediate: API design, system components, data structures
+- Pro: Architecture, distributed systems, optimization, complex algorithms
 
-Ensure the JSON is properly formatted and valid.`;
+Ensure the difficulty distribution matches exactly what was requested and the JSON is properly formatted and valid.`;
 
     // Generate content using Gemini 2.5 Flash
     const response = await ai.models.generateContent({

@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         initialized: true,
       });
     } else {
+      console.log('No user, setting empty auth state');
       setAuthState({
         user: null,
         session: null,
@@ -66,15 +67,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth state
   useEffect(() => {
-    // Get initial session with error handling
     const initializeSession = async () => {
       try {
+        console.log('Initializing auth session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Session initialization error:', error);
-          // Clear invalid session data
-          await supabase.auth.signOut();
+          console.warn('Session initialization error (non-critical):', error);
+          // Don't sign out for minor errors, just set no session
           setAuthState({
             user: null,
             session: null,
@@ -84,11 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return;
         }
         
+        console.log('Session found:', !!session);
         await updateAuthState(session?.user || null, session);
       } catch (error) {
         console.error('Failed to initialize session:', error);
-        // Clear any invalid session data
-        await supabase.auth.signOut();
+        // Don't sign out on initialization errors, just set no session
         setAuthState({
           user: null,
           session: null,
@@ -124,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Sign up with email and password
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       setAuthState(prev => ({ ...prev, loading: true }));
 
       const { error } = await supabase.auth.signUp({
@@ -267,10 +268,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update user profile
   const updateProfile = async (updates: Partial<Profile>) => {
     try {
-      if (!authState.user) {
+        console.warn('Profile fetch error (will create if missing):', error);
+        
+        // If profile doesn't exist, try to create it
+        if (error.code === 'PGRST116') { // No rows found
+          console.log('Profile not found, creating new profile...');
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              full_name: null,
+              avatar_url: null,
+              onboarding_complete: false
+            })
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error('Failed to create profile:', createError);
+            return null;
+          }
+          
+          console.log('Profile created successfully');
+          return newProfile;
+        }
         throw new Error('No authenticated user');
       }
 
+      console.log('Profile fetched successfully');
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -283,10 +308,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (updatedProfile) {
         setAuthState(prev => ({
           ...prev,
+    console.log('Updating auth state for user:', user?.email);
+    
           user: prev.user ? { ...prev.user, profile: updatedProfile } : null,
         }));
       }
       
+      console.log('Auth state updated with profile:', !!profile);
       showSuccess('Profile updated successfully');
       return { error: null };
     } catch (error) {

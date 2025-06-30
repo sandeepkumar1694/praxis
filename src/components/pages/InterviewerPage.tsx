@@ -233,10 +233,6 @@ const InterviewerPage: React.FC = () => {
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
               )}
-              
-              <button
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto">

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Play, Pause, Mic, MicOff, Volume2, VolumeX, MessageCircle, Loader } from 'lucide-react';
+import { Play, Pause, Mic, MicOff, Volume2, VolumeX, MessageCircle, Loader, ExternalLink } from 'lucide-react';
 import { useTavusSession } from '../../hooks/useTavusSession';
 import { useAudioPermissions } from '../../hooks/useAudioPermissions';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -17,16 +17,17 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
   className = '',
   autoStart = false,
 }) => {
-  const { showError, showInfo } = useNotification();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { showError, showInfo, showSuccess } = useNotification();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isTavusLoaded, setIsTavusLoaded] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [textInput, setTextInput] = useState('');
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [conversationStarted, setConversationStarted] = useState(false);
 
   const {
     session,
@@ -51,14 +52,15 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
     stopStream,
   } = useAudioPermissions();
 
-  // Handle video loading
-  const handleVideoLoad = useCallback(() => {
-    setIsVideoLoaded(true);
-  }, []);
+  // Handle iframe loading
+  const handleIframeLoad = useCallback(() => {
+    setIsTavusLoaded(true);
+    showSuccess('Avatar interface loaded successfully!');
+  }, [showSuccess]);
 
-  const handleVideoError = useCallback(() => {
-    setIsVideoLoaded(false);
-    showError('Failed to load avatar video');
+  const handleIframeError = useCallback(() => {
+    setIsTavusLoaded(false);
+    showError('Failed to load avatar interface');
   }, [showError]);
 
   // Auto start session if requested
@@ -67,21 +69,6 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
       startSession(replicaId, personaId);
     }
   }, [autoStart, session, sessionLoading, startSession, replicaId, personaId]);
-
-  // Load video when session is ready
-  useEffect(() => {
-    if (session?.session_url && videoRef.current) {
-      videoRef.current.src = session.session_url;
-      videoRef.current.load();
-    }
-  }, [session?.session_url]);
-
-  // Volume control
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
 
   const handleStartSession = async () => {
     try {
@@ -100,6 +87,8 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
       
       stopStream();
       await endSession();
+      setConversationStarted(false);
+      setIsTavusLoaded(false);
     } catch (error) {
       // Error handling is done in the hook
     }
@@ -180,6 +169,17 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
     }
   };
 
+  const handleStartConversation = () => {
+    setConversationStarted(true);
+    showInfo('Conversation started! You can now interact with Sarah Chen.');
+  };
+
+  const openInNewTab = () => {
+    if (session?.session_url) {
+      window.open(session.session_url, '_blank', 'width=800,height=600');
+    }
+  };
+
   const getStatusColor = () => {
     if (sessionError) return 'bg-red-500';
     if (!session) return 'bg-gray-400';
@@ -201,40 +201,30 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <div className="flex items-center space-x-3">
           <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
-          <h3 className="text-lg font-semibold text-white">AI Avatar</h3>
+          <h3 className="text-lg font-semibold text-white">AI Technical Interviewer</h3>
           <span className="text-sm text-white/60">{getStatusText()}</span>
         </div>
         
         <div className="flex items-center space-x-2">
-          {/* Volume Control */}
-          <div className="flex items-center space-x-2">
+          {session?.session_url && (
             <button
-              onClick={() => setIsMuted(!isMuted)}
+              onClick={openInNewTab}
               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-              title={isMuted ? 'Unmute' : 'Mute'}
+              title="Open in new window"
             >
-              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              <ExternalLink size={20} />
             </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="w-16 h-1 bg-white/20 rounded-lg appearance-none slider"
-            />
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Video Container */}
+      {/* Main Content */}
       <div className="relative aspect-video bg-gray-900">
         {sessionLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="text-center">
               <Loader size={48} className="text-primary animate-spin mx-auto mb-4" />
-              <p className="text-white/80">Initializing avatar...</p>
+              <p className="text-white/80">Initializing avatar session...</p>
             </div>
           </div>
         )}
@@ -276,16 +266,64 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
           </div>
         )}
 
-        {session && (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted={false}
-            onLoadedData={handleVideoLoad}
-            onError={handleVideoError}
-            className={`w-full h-full object-cover ${isVideoLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
-          />
+        {session && !conversationStarted && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+            <div className="text-center max-w-md px-6">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle size={32} className="text-green-400" />
+              </div>
+              <h4 className="text-xl font-semibold text-white mb-4">Session Ready!</h4>
+              <p className="text-white/80 mb-6">
+                Your interview session with Sarah Chen is ready. Click the button below to open 
+                the interactive avatar interface in a new window.
+              </p>
+              <button
+                onClick={handleStartConversation}
+                className="px-6 py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-all duration-200 hover:scale-105"
+              >
+                Start Conversation
+              </button>
+            </div>
+          </div>
+        )}
+
+        {session && conversationStarted && (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20">
+            {session.session_url ? (
+              <iframe
+                ref={iframeRef}
+                src={session.session_url}
+                className="w-full h-full border-0"
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
+                allow="camera; microphone; fullscreen"
+                title="Tavus AI Interviewer"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageCircle size={40} className="text-blue-400" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-white mb-4">
+                    Interview in Progress
+                  </h4>
+                  <p className="text-white/80 mb-6">
+                    Your technical interview with Sarah Chen is active. Use the controls below to interact.
+                  </p>
+                  {session.session_url && (
+                    <button
+                      onClick={openInNewTab}
+                      className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-blue-600 transition-all duration-200 flex items-center space-x-2 mx-auto"
+                    >
+                      <ExternalLink size={20} />
+                      <span>Open Avatar Interface</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Recording Indicator */}
@@ -300,8 +338,32 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
       </div>
 
       {/* Controls */}
-      {session && connected && (
+      {session && conversationStarted && (
         <div className="p-6 space-y-4">
+          {/* Session Info */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+            <h4 className="text-blue-400 font-semibold mb-2">Interview Session Active</h4>
+            <p className="text-blue-300/80 text-sm mb-3">
+              You're now connected with Sarah Chen, Senior Engineering Manager. 
+              The interview interface will open in a new window for the best experience.
+            </p>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={openInNewTab}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2"
+              >
+                <ExternalLink size={16} />
+                <span>Open Interview Window</span>
+              </button>
+              <button
+                onClick={handleEndSession}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors duration-200"
+              >
+                End Session
+              </button>
+            </div>
+          </div>
+
           {/* Audio Controls */}
           <div className="flex items-center justify-center space-x-4">
             <button
@@ -321,13 +383,6 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
               ) : (
                 <Mic size={24} />
               )}
-            </button>
-
-            <button
-              onClick={handleEndSession}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all duration-200"
-            >
-              End Session
             </button>
           </div>
 
@@ -364,6 +419,17 @@ const TavusAvatar: React.FC<TavusAvatarProps> = ({
             >
               <MessageCircle size={20} />
             </button>
+          </div>
+
+          {/* Usage Instructions */}
+          <div className="bg-white/5 rounded-lg p-4">
+            <h4 className="text-white font-semibold mb-2">How to Use:</h4>
+            <ul className="text-white/60 text-sm space-y-1">
+              <li>• Click "Open Interview Window" for the best experience</li>
+              <li>• Speak naturally with Sarah Chen about your technical experience</li>
+              <li>• The AI will adapt questions based on your responses</li>
+              <li>• Use the microphone button for voice recording (alternative)</li>
+            </ul>
           </div>
         </div>
       )}

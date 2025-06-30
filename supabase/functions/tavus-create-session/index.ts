@@ -79,36 +79,64 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const replicaId = replica_id || Deno.env.get('TAVUS_REPLICA_ID') || 'r9d30b0e55ac';
+    const personaIdToUse = persona_id || Deno.env.get('TAVUS_PERSONA_ID');
+
     // Create session with Tavus API
+    const requestBody: any = {
+      replica_id: replicaId,
+      conversation_name: `Full Stack Technical Interview - ${user.email?.split('@')[0] || 'User'}`,
+      callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/tavus-webhook`,
+      max_call_duration: 3600, // 1 hour
+      properties: {
+        max_call_duration: 3600,
+        participant_left_timeout: 60,
+        participant_absent_timeout: 300,
+        enable_recording: false,
+        enable_transcription: true,
+      }
+    };
+
+    // Add persona_id if available
+    if (personaIdToUse) {
+      requestBody.persona_id = personaIdToUse;
+    }
+
+    console.log('Creating Tavus conversation with:', JSON.stringify(requestBody));
+
     const tavusResponse = await fetch('https://tavusapi.com/v2/conversations', {
       method: 'POST',
       headers: {
         'x-api-key': tavusApiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        replica_id: replica_id || Deno.env.get('TAVUS_REPLICA_ID') || 'r9d30b0e55ac',
-        persona_id: persona_id || Deno.env.get('TAVUS_PERSONA_ID'),
-        callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/tavus-webhook`,
-        conversation_name: `Full Stack Interview - ${user.email}`,
-        conversational_context: "You are Sarah Chen, a Senior Engineering Manager conducting a comprehensive full stack web development interview. Ask about React, Node.js, databases, system design, and modern development practices.",
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!tavusResponse.ok) {
-      const errorData = await tavusResponse.json().catch(() => ({}));
+      const errorText = await tavusResponse.text();
+      console.error('Tavus API error response:', errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+      
       throw new Error(errorData.error || `Tavus API error: ${tavusResponse.status}`);
     }
 
     const sessionData = await tavusResponse.json();
+    console.log('Tavus conversation created:', JSON.stringify(sessionData));
 
-    // Return session information
+    // Return session information in our expected format
     const session = {
       session_id: sessionData.conversation_id,
       session_url: sessionData.conversation_url,
-      status: 'initializing',
-      created_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
+      status: sessionData.status || 'initializing',
+      created_at: sessionData.created_at || new Date().toISOString(),
+      expires_at: sessionData.expires_at || new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
     };
 
     return new Response(

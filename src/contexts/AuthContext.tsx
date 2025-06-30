@@ -268,30 +268,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update user profile
   const updateProfile = async (updates: Partial<Profile>) => {
     try {
-        console.warn('Profile fetch error (will create if missing):', error);
-        
-        // If profile doesn't exist, try to create it
-        if (error.code === 'PGRST116') { // No rows found
-          console.log('Profile not found, creating new profile...');
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              full_name: null,
-              avatar_url: null,
-              onboarding_complete: false
-            })
-            .select()
-            .single();
-            
-          if (createError) {
-            console.error('Failed to create profile:', createError);
-            return null;
-          }
-          
-          console.log('Profile created successfully');
-          return newProfile;
-        }
+      if (!authState.user) {
         throw new Error('No authenticated user');
       }
 
@@ -308,13 +285,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (updatedProfile) {
         setAuthState(prev => ({
           ...prev,
-    console.log('Updating auth state for user:', user?.email);
-    
           user: prev.user ? { ...prev.user, profile: updatedProfile } : null,
         }));
       }
       
-      console.log('Auth state updated with profile:', !!profile);
+      console.log('Auth state updated with profile:', !!updatedProfile);
       showSuccess('Profile updated successfully');
       return { error: null };
     } catch (error) {

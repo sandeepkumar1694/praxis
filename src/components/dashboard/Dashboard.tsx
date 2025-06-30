@@ -18,6 +18,8 @@ const Dashboard: React.FC = () => {
 
   // Staggered animation effect
   useEffect(() => {
+    if (loading || error) return;
+    
     const timer = setInterval(() => {
       setAnimationStep(prev => {
         if (prev < 7) return prev + 1;
@@ -27,7 +29,12 @@ const Dashboard: React.FC = () => {
     }, 100);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [loading, error]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard - User:', user?.email, 'Loading:', loading, 'Error:', error);
+  }, [user, loading, error]);
 
   if (loading) {
     return (

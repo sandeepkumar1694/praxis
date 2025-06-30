@@ -32,10 +32,20 @@ const OnboardingFlow: React.FC = () => {
   const [data, setData] = useState<Partial<OnboardingData>>({});
   const [errors, setErrors] = useState<ValidationErrors>({});
 
+  // Redirect if not authenticated
+  if (!loading && !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  // Redirect if already completed onboarding
+  if (!loading && user?.profile?.onboarding_complete) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   // Monitor user state for onboarding completion and navigate to dashboard
   useEffect(() => {
     if (user?.profile?.onboarding_complete && location.pathname === '/onboarding') {
-      navigate('/tasks', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [user?.profile?.onboarding_complete, navigate, location.pathname]);
 

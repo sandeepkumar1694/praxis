@@ -86,7 +86,7 @@ function App() {
                 path="/dashboard" 
                 element={
                   <ProtectedRoute requireAuth={true} requireOnboarding={true}>
-                    <Dashboard />
+                    <DashboardLayout><Dashboard /></DashboardLayout>
                   </ProtectedRoute>
                 } 
               />

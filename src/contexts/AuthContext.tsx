@@ -43,82 +43,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Update auth state - this should be fast and not affect initialization
-  const setAuthUser = (user: User | null, session: Session | null, profile?: Profile | null) => {
+  const updateAuthState = async (user: User | null, session: Session | null) => {
     if (user) {
+      const profile = await fetchProfile(user.id);
       const authUser: AuthUser = { ...user, profile: profile || undefined };
-      setAuthState(prev => ({
-        ...prev,
+      
+      setAuthState({
         user: authUser,
         session,
-      }));
+        loading: false,
+        initialized: true,
+      });
     } else {
-      setAuthState(prev => ({
-        ...prev,
+      setAuthState({
         user: null,
         session: null,
-      }));
+        loading: false,
+        initialized: true,
+      });
     }
   };
 
-  // Fetch profile separately and update user data
-  const updateUserProfile = async (user: User) => {
-    try {
-      const profile = await fetchProfile(user.id);
-      setAuthState(prev => ({
-        ...prev,
-        user: prev.user ? { ...prev.user, profile: profile || undefined } : null,
-      }));
-    } catch (error) {
-      console.error('Failed to update user profile:', error);
-      // Don't throw error - user can still use the app without profile data
-    }
-  };
-
-  // Initialize auth state - this should complete quickly
+  // Initialize auth state
   useEffect(() => {
+    // Get initial session with error handling
     const initializeSession = async () => {
       try {
         console.log('Initializing auth session...');
-        
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Always mark as initialized and not loading after session check
-        setAuthState(prev => ({
-          ...prev,
-          loading: false,
-          initialized: true,
-        }));
-        
         if (error) {
-          console.warn('Session initialization error (non-critical):', error);
-          setAuthUser(null, null);
+          console.error('Session initialization error:', error);
+          // Clear invalid session data
+          await supabase.auth.signOut();
+          setAuthState({
+            user: null,
+            session: null,
+            loading: false,
+            initialized: true,
+          });
           return;
         }
         
-        if (session?.user) {
-          console.log('Session found for user:', session.user.email);
-          // Set user immediately without profile
-          setAuthUser(session.user, session);
-          
-          // Fetch profile in background without blocking
-          updateUserProfile(session.user).catch(error => {
-            console.warn('Background profile fetch failed:', error);
-          });
-        } else {
-          console.log('No session found');
-          setAuthUser(null, null);
-        }
-        
+        await updateAuthState(session?.user || null, session);
       } catch (error) {
         console.error('Failed to initialize session:', error);
-        // Still mark as initialized even on error
-        setAuthState(prev => ({
-          ...prev,
-          loading: false,
-          initialized: true,
+        // Clear any invalid session data
+        await supabase.auth.signOut();
+        setAuthState({
           user: null,
           session: null,
-        }));
+          loading: false,
+          initialized: true,
+        });
       }
     };
     
@@ -131,15 +108,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (session?.user) {
-          setAuthUser(session.user, session);
-          // Update profile in background
-          updateUserProfile(session.user).catch(error => {
-            console.warn('Background profile update failed:', error);
-          });
-        }
+        await updateAuthState(session?.user || null, session);
       } else if (event === 'SIGNED_OUT') {
-        setAuthUser(null, null);
+        setAuthState({
+          user: null,
+          session: null,
+          loading: false,
+          initialized: true,
+        });
       }
     });
 
@@ -324,7 +300,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Refresh profile data
   const refreshProfile = async () => {
     if (authState.user) {
-      await updateUserProfile(authState.user);
+      const profile = await fetchProfile(authState.user.id);
+      setAuthState(prev => ({
+        ...prev,
+        user: prev.user ? { ...prev.user, profile: profile || undefined } : null,
+      }));
     }
   };
 

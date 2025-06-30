@@ -19,14 +19,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, loading, initialized } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner only briefly while auth is initializing
-  if (!initialized) {
+  // Show loading spinner while auth is initializing
+  if (!initialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-blue-50">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading your session...</p>
-        </div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -48,8 +45,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // If user is authenticated but trying to access auth pages, redirect to dashboard
   if (user && !requireAuth && (location.pathname.startsWith('/auth') || location.pathname === '/')) {
     if (user.profile?.onboarding_complete) {
-      return <Navigate to="/tasks" replace />;
+      return <Navigate to="/dashboard" replace />;
     } else {
+    if (location.pathname !== '/onboarding') {
       return <Navigate to="/onboarding" replace />;
     }
   }

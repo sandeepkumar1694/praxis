@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Target, Zap, TrendingUp, Star, Calendar } from 'lucide-react';
-import CountUp from '../../ui/CountUp';
+import CountUp from '../../ui/CountUp.tsx';
 
 interface Achievement {
   id: string;

@@ -124,7 +124,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Sign up with email and password
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      console.log('Fetching profile for user:', userId);
       setAuthState(prev => ({ ...prev, loading: true }));
 
       const { error } = await supabase.auth.signUp({
@@ -272,7 +271,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('No authenticated user');
       }
 
-      console.log('Profile fetched successfully');
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -289,7 +287,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }));
       }
       
-      console.log('Auth state updated with profile:', !!updatedProfile);
       showSuccess('Profile updated successfully');
       return { error: null };
     } catch (error) {

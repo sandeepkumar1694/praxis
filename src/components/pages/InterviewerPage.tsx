@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { Video, Calendar, Clock, Users, Star, ArrowRight, Play } from 'lucide-react';
+import { Video, Calendar, Clock, Users, Star, ArrowRight, Play, Settings, Info } from 'lucide-react';
 import AuthenticatedLayout from '../layout/AuthenticatedLayout';
+import TavusAvatar from '../tavus/TavusAvatar';
 
 const InterviewerPage: React.FC = () => {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [showAvatar, setShowAvatar] = useState(false);
+  const [avatarSettings, setAvatarSettings] = useState({
+    replicaId: '',
+    personaId: '',
+    autoStart: false,
+  });
 
   const packages = [
     {
@@ -133,6 +140,93 @@ const InterviewerPage: React.FC = () => {
           ))}
         </div>
 
+        {/* Avatar Demo Section */}
+        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-8 mb-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4">Live AI Avatar Demo</h2>
+            <p className="text-white/80 max-w-2xl mx-auto">
+              Experience our advanced Tavus-powered AI interviewer. Start a conversation to see how realistic and 
+              interactive our avatar technology is.
+            </p>
+          </div>
+          
+          {!showAvatar ? (
+            <div className="text-center">
+              <div className="grid md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
+                <div className="bg-white/5 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-3">🎯 Realistic Interactions</h3>
+                  <p className="text-white/70 text-sm">
+                    Natural conversation flow with human-like responses and expressions
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-3">🎤 Voice & Text Support</h3>
+                  <p className="text-white/70 text-sm">
+                    Communicate through voice recording or text input for flexible interaction
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-3">📊 Real-time Feedback</h3>
+                  <p className="text-white/70 text-sm">
+                    Get instant responses and adapt to your communication style
+                  </p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-3">🔒 Secure & Private</h3>
+                  <p className="text-white/70 text-sm">
+                    Your conversations are secure and not stored permanently
+                  </p>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setShowAvatar(true)}
+                className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 flex items-center space-x-2 mx-auto"
+              >
+                <Video size={24} />
+                <span>Start Avatar Demo</span>
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">AI Avatar Demo Session</h3>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowAvatar(false)}
+                    className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors duration-200"
+                  >
+                    Close Demo
+                  </button>
+                </div>
+              </div>
+              
+              <TavusAvatar
+                replicaId={avatarSettings.replicaId}
+                personaId={avatarSettings.personaId}
+                autoStart={avatarSettings.autoStart}
+                className="max-w-3xl mx-auto"
+              />
+              
+              <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                <div className="flex items-start space-x-3">
+                  <Info size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-blue-400 font-semibold mb-2">Demo Instructions:</h4>
+                    <ul className="text-blue-300/80 text-sm space-y-1">
+                      <li>• Click the microphone button to record voice messages</li>
+                      <li>• Use the text input to type messages</li>
+                      <li>• The avatar will respond with realistic video and audio</li>
+                      <li>• This is a demonstration - full interview features are available in packages above</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* How It Works */}
         <div className="bg-white/5 rounded-2xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">How It Works</h2>
@@ -179,7 +273,7 @@ const InterviewerPage: React.FC = () => {
           </div>
         )}
 
-        {/* Coming Soon Banner */}
+        {/* Technology Info */}
         <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-6 text-center">
           <h3 className="text-lg font-semibold text-white mb-2">
             🚀 Powered by Tavus AI Technology

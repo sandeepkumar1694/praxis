@@ -197,6 +197,9 @@ For the AI task system to work, you'll also need to add these variables to your 
 ```env
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 GEMINI_API_KEY=your_gemini_api_key
+TAVUS_API_KEY=your_tavus_api_key
+TAVUS_REPLICA_ID=your_replica_id  
+TAVUS_PERSONA_ID=your_persona_id
 ```
 
 ## Database Setup

@@ -47,6 +47,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (user.profile?.onboarding_complete) {
       return <Navigate to="/dashboard" replace />;
     } else {
+    }
     if (location.pathname !== '/onboarding') {
       return <Navigate to="/onboarding" replace />;
     }

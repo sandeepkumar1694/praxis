@@ -104,6 +104,27 @@ class TaskAPI {
     }
   }
 
+  async generateDailyTasksWithDifficulty(distribution: { basic: number; intermediate: number; pro: number }): Promise<DailyTask[]> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-daily-tasks`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ difficultyDistribution: distribution }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.tasks || [];
+    } catch (error) {
+      console.error('Error generating daily tasks with difficulty:', error);
+      throw new Error('Failed to generate daily tasks');
+    }
+  }
+
   async generateDailyTasks(): Promise<DailyTask[]> {
     try {
       const headers = await this.getAuthHeaders();

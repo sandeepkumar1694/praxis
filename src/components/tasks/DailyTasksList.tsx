@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { taskAPI } from '../../lib/api';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import AuthenticatedLayout from '../layout/AuthenticatedLayout';
 
 const DailyTasksList: React.FC = () => {
   const { user } = useAuth();
@@ -101,7 +102,7 @@ const DailyTasksList: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <AuthenticatedLayout>
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -255,7 +256,7 @@ const DailyTasksList: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

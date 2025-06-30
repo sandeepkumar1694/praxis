@@ -7,6 +7,7 @@ import { useNotification } from '../../contexts/NotificationContext';
 import { taskAPI } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import AuthenticatedLayout from '../layout/AuthenticatedLayout';
 
 const TaskCompletion: React.FC = () => {
   const { taskId } = useParams<{ taskId: string }>();
@@ -139,7 +140,7 @@ const TaskCompletion: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dashboard-bg">
+      <AuthenticatedLayout>
         <div className="container mx-auto px-6 py-8 max-w-6xl">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -148,7 +149,7 @@ const TaskCompletion: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </AuthenticatedLayout>
     );
   }
 
@@ -157,7 +158,7 @@ const TaskCompletion: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <AuthenticatedLayout>
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -272,7 +273,7 @@ const TaskCompletion: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

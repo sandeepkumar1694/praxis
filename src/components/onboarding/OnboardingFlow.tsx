@@ -45,7 +45,7 @@ const OnboardingFlow: React.FC = () => {
   // Monitor user state for onboarding completion and navigate to dashboard
   useEffect(() => {
     if (user?.profile?.onboarding_complete && location.pathname === '/onboarding') {
-      navigate('/dashboard', { replace: true });
+      navigate('/tasks', { replace: true });
     }
   }, [user?.profile?.onboarding_complete, navigate, location.pathname]);
 

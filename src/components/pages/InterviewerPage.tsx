@@ -1,79 +1,112 @@
 import React, { useState } from 'react';
-import { Video, Calendar, Clock, Users, Star, ArrowRight, Play, Settings, Info } from 'lucide-react';
+import { Video, Calendar, Clock, Users, Star, ArrowRight, Play, Settings, Info, Cpu, Database, Globe } from 'lucide-react';
 import AuthenticatedLayout from '../layout/AuthenticatedLayout';
 import TavusAvatar from '../tavus/TavusAvatar';
+import { useNotification } from '../../contexts/NotificationContext';
+import { supabase } from '../../lib/supabase';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const InterviewerPage: React.FC = () => {
+  const { showSuccess, showError } = useNotification();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [showAvatar, setShowAvatar] = useState(false);
+  const [creatingPersona, setCreatingPersona] = useState(false);
+  const [personaId, setPersonaId] = useState<string | null>(null);
   const [avatarSettings, setAvatarSettings] = useState({
-    replicaId: '',
-    personaId: '',
+    replicaId: 'r9d30b0e55ac', // Default replica ID
+    personaId: '', // Will be set after persona creation
     autoStart: false,
   });
 
   const packages = [
     {
-      id: 'mock-interview',
-      title: 'Mock Technical Interview',
+      id: 'frontend-interview',
+      title: 'Frontend Development Interview',
       duration: '45 minutes',
       price: '$49',
       features: [
-        'Real-time coding interview simulation',
-        'AI-powered interviewer with dynamic questions',
-        'Multiple programming languages supported',
+        'React/Vue.js component challenges',
+        'CSS and responsive design questions',
+        'JavaScript ES6+ problem solving',
         'Detailed performance feedback',
-        'Recording for later review'
+        'Frontend optimization techniques'
       ],
       rating: 4.8,
-      reviews: 324
+      reviews: 287
     },
     {
-      id: 'system-design',
-      title: 'System Design Interview',
+      id: 'backend-interview',
+      title: 'Backend Development Interview',
       duration: '60 minutes',
       price: '$69',
       features: [
-        'System architecture discussions',
-        'Scalability and performance analysis',
-        'Database design evaluation',
-        'Real-world scenario problems',
-        'Expert feedback and suggestions'
+        'Node.js/Express API development',
+        'Database design and optimization',
+        'Authentication and security practices',
+        'Microservices architecture',
+        'Performance and scalability analysis'
       ],
       rating: 4.9,
-      reviews: 187
+      reviews: 213
     },
     {
-      id: 'behavioral',
-      title: 'Behavioral Interview',
-      duration: '30 minutes',
-      price: '$39',
+      id: 'fullstack-interview',
+      title: 'Full Stack Interview',
+      duration: '90 minutes',
+      price: '$99',
       features: [
-        'STAR method practice',
-        'Leadership and teamwork scenarios',
-        'Culture fit assessment',
-        'Communication skills evaluation',
-        'Personalized improvement tips'
+        'End-to-end application development',
+        'Frontend and backend integration',
+        'Database design and API development',
+        'Deployment and DevOps practices',
+        'System architecture discussions'
       ],
       rating: 4.7,
-      reviews: 256
+      reviews: 341
     }
   ];
+
+  const createPersona = async () => {
+    setCreatingPersona(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/tavus-create-persona`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create persona');
+      }
+
+      const data = await response.json();
+      setPersonaId(data.persona_id);
+      setAvatarSettings(prev => ({ ...prev, personaId: data.persona_id }));
+      showSuccess('AI Interviewer persona created successfully!');
+    } catch (error) {
+      showError('Failed to create interviewer persona. Please try again.');
+    } finally {
+      setCreatingPersona(false);
+    }
+  };
 
   return (
     <AuthenticatedLayout>
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-4">
             <Video size={32} className="text-white" />
           </div>
           <h1 className="text-4xl font-poppins font-bold text-white mb-4">
             AI-Powered Interviewer
           </h1>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
-            Practice with our advanced AI interviewer powered by Tavus technology. 
-            Get realistic interview experience with personalized feedback.
+            Practice full stack web development interviews with our advanced AI interviewer powered by Tavus technology. 
+            Get realistic technical interview experience with expert feedback.
           </p>
         </div>
 
@@ -141,12 +174,12 @@ const InterviewerPage: React.FC = () => {
         </div>
 
         {/* Avatar Demo Section */}
-        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-8 mb-8">
+        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-8 mb-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Live AI Avatar Demo</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Live Technical Interview Demo</h2>
             <p className="text-white/80 max-w-2xl mx-auto">
-              Experience our advanced Tavus-powered AI interviewer. Start a conversation to see how realistic and 
-              interactive our avatar technology is.
+              Experience our advanced Tavus-powered technical interviewer. Practice full stack development questions 
+              and see how realistic and interactive our avatar technology is.
             </p>
           </div>
           
@@ -154,19 +187,19 @@ const InterviewerPage: React.FC = () => {
             <div className="text-center">
               <div className="grid md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
                 <div className="bg-white/5 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">🎯 Realistic Interactions</h3>
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center"><Cpu size={20} className="mr-2 text-blue-400" />Technical Expertise</h3>
                   <p className="text-white/70 text-sm">
-                    Natural conversation flow with human-like responses and expressions
+                    Deep knowledge of full stack technologies, frameworks, and best practices
                   </p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">🎤 Voice & Text Support</h3>
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center"><Database size={20} className="mr-2 text-green-400" />System Design</h3>
                   <p className="text-white/70 text-sm">
-                    Communicate through voice recording or text input for flexible interaction
+                    Assess your ability to design scalable systems and database architectures
                   </p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">📊 Real-time Feedback</h3>
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center"><Globe size={20} className="mr-2 text-purple-400" />Real-time Feedback</h3>
                   <p className="text-white/70 text-sm">
                     Get instant responses and adapt to your communication style
                   </p>
@@ -179,12 +212,29 @@ const InterviewerPage: React.FC = () => {
                 </div>
               </div>
               
+              {!personaId && (
+                <button
+                  onClick={createPersona}
+                  disabled={creatingPersona}
+                  className="group px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-semibold text-lg hover:from-green-600 hover:to-blue-600 transition-all duration-300 hover:scale-105 flex items-center space-x-2 mx-auto mb-4 disabled:opacity-50"
+                >
+                  {creatingPersona ? <LoadingSpinner size="sm" color="text-white" /> : <Settings size={24} />}
+                  <span>{creatingPersona ? 'Creating Interviewer...' : 'Create AI Interviewer'}</span>
+                </button>
+              )}
+              
+              {personaId && (
+                <button
+                  onClick={() => setShowAvatar(true)}
+                  className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 flex items-center space-x-2 mx-auto"
+                >
+                  <Video size={24} />
+                  <span>Start Technical Interview</span>
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+              )}
+              
               <button
-                onClick={() => setShowAvatar(true)}
-                className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 flex items-center space-x-2 mx-auto"
-              >
-                <Video size={24} />
-                <span>Start Avatar Demo</span>
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </div>
@@ -203,8 +253,8 @@ const InterviewerPage: React.FC = () => {
               </div>
               
               <TavusAvatar
-                replicaId={avatarSettings.replicaId}
-                personaId={avatarSettings.personaId}
+                replicaId={avatarSettings.replicaId || 'r9d30b0e55ac'}
+                personaId={personaId || avatarSettings.personaId}
                 autoStart={avatarSettings.autoStart}
                 className="max-w-3xl mx-auto"
               />
@@ -215,10 +265,10 @@ const InterviewerPage: React.FC = () => {
                   <div>
                     <h4 className="text-blue-400 font-semibold mb-2">Demo Instructions:</h4>
                     <ul className="text-blue-300/80 text-sm space-y-1">
-                      <li>• Click the microphone button to record voice messages</li>
-                      <li>• Use the text input to type messages</li>
-                      <li>• The avatar will respond with realistic video and audio</li>
-                      <li>• This is a demonstration - full interview features are available in packages above</li>
+                      <li>• Click the microphone button to answer technical questions</li>
+                      <li>• Use the text input for coding discussions and explanations</li>
+                      <li>• The AI interviewer will ask full stack development questions</li>
+                      <li>• This demo covers frontend, backend, and system design topics</li>
                     </ul>
                   </div>
                 </div>
@@ -234,17 +284,17 @@ const InterviewerPage: React.FC = () => {
             {[
               {
                 step: '1',
-                title: 'Choose Your Interview Type',
-                description: 'Select the type of interview you want to practice based on your needs.'
+                title: 'Choose Your Technical Focus',
+                description: 'Select frontend, backend, or full stack interview based on your career goals.'
               },
               {
                 step: '2',
                 title: 'AI Interviewer Starts',
-                description: 'Our Tavus-powered AI interviewer will conduct a realistic interview session.'
+                description: 'Our Tavus-powered AI interviewer will conduct a realistic technical interview.'
               },
               {
                 step: '3',
-                title: 'Get Detailed Feedback',
+                title: 'Get Technical Feedback',
                 description: 'Receive comprehensive feedback on your performance with actionable insights.'
               }
             ].map((step, index) => (
@@ -264,7 +314,7 @@ const InterviewerPage: React.FC = () => {
           <div className="text-center">
             <button className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105 flex items-center space-x-2 mx-auto">
               <Play size={20} />
-              <span>Start Interview</span>
+              <span>Start Technical Interview</span>
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
             </button>
             <p className="mt-4 text-white/60 text-sm">
@@ -276,11 +326,11 @@ const InterviewerPage: React.FC = () => {
         {/* Technology Info */}
         <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-6 text-center">
           <h3 className="text-lg font-semibold text-white mb-2">
-            🚀 Powered by Tavus AI Technology
+            🚀 Advanced Technical Interview Platform
           </h3>
           <p className="text-white/80">
-            Experience the most realistic AI-powered interview simulations with advanced 
-            natural language processing and real-time adaptation to your responses.
+            Experience the most realistic AI-powered technical interviews with advanced 
+            full stack knowledge and real-time adaptation to your coding discussions.
           </p>
         </div>
       </div>

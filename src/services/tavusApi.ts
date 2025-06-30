@@ -52,9 +52,15 @@ class TavusAPIService {
     return this.makeRequest<TavusSession>('/tavus-create-session', {
       method: 'POST',
       body: JSON.stringify({
-        replica_id: replicaId,
+        replica_id: replicaId || 'r9d30b0e55ac',
         persona_id: personaId,
       }),
+    });
+  }
+
+  async createPersona(): Promise<TavusApiResponse<{ persona_id: string; persona_name: string }>> {
+    return this.makeRequest<{ persona_id: string; persona_name: string }>('/tavus-create-persona', {
+      method: 'POST',
     });
   }
 

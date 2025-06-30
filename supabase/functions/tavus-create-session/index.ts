@@ -87,11 +87,11 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        replica_id: replica_id || Deno.env.get('TAVUS_REPLICA_ID'),
+        replica_id: replica_id || Deno.env.get('TAVUS_REPLICA_ID') || 'r9d30b0e55ac',
         persona_id: persona_id || Deno.env.get('TAVUS_PERSONA_ID'),
         callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/tavus-webhook`,
-        conversation_name: `Interview Session - ${user.email}`,
-        conversational_context: "You are an AI interviewer conducting a professional technical interview. Be engaging, ask thoughtful questions, and provide helpful feedback.",
+        conversation_name: `Full Stack Interview - ${user.email}`,
+        conversational_context: "You are Sarah Chen, a Senior Engineering Manager conducting a comprehensive full stack web development interview. Ask about React, Node.js, databases, system design, and modern development practices.",
       }),
     });
 

@@ -87,7 +87,6 @@ Deno.serve(async (req: Request) => {
       replica_id: replicaId,
       conversation_name: `Full Stack Technical Interview - ${user.email?.split('@')[0] || 'User'}`,
       callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/tavus-webhook`,
-      max_call_duration: 3600, // 1 hour
       properties: {
         max_call_duration: 3600,
         participant_left_timeout: 60,

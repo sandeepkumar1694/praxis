@@ -125,6 +125,68 @@ class TaskAPI {
     }
   }
 
+  // Weekly challenges and achievements APIs
+  async getWeeklyChallenges() {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-weekly-challenges`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching weekly challenges:', error);
+      throw new Error('Failed to fetch weekly challenges');
+    }
+  }
+
+  async getUserAchievements() {
+    try {
+      const headers = await this.getAuthHeaders();
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-user-achievements`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching user achievements:', error);
+      throw new Error('Failed to fetch user achievements');
+    }
+  }
+
+  async getPerformanceData(timeRange?: string) {
+    try {
+      const headers = await this.getAuthHeaders();
+      const url = timeRange 
+        ? `${SUPABASE_URL}/functions/v1/get-performance-data?timeRange=${timeRange}`
+        : `${SUPABASE_URL}/functions/v1/get-performance-data`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching performance data:', error);
+      throw new Error('Failed to fetch performance data');
+    }
+  }
+
   async generateDailyTasks(): Promise<DailyTask[]> {
     try {
       const headers = await this.getAuthHeaders();

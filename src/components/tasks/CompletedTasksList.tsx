@@ -29,6 +29,11 @@ const CompletedTasksList: React.FC = () => {
     try {
       setLoading(true);
       
+      if (!user?.id) {
+        showError('User not authenticated');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('user_submissions')
         .select(`
@@ -44,12 +49,14 @@ const CompletedTasksList: React.FC = () => {
         `)
         .eq('user_id', user?.id)
         .eq('status', 'scored')
+        .not('score', 'is', null)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
 
       setCompletedTasks(data || []);
     } catch (error) {
+      console.error('Error fetching completed tasks:', error);
       showError(error instanceof Error ? error.message : 'Failed to load completed tasks');
     } finally {
       setLoading(false);

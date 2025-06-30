@@ -25,6 +25,9 @@ import CompletedTasksList from './components/tasks/CompletedTasksList';
 import TaskGenerator from './components/tasks/TaskGenerator';
 import InterviewerPage from './components/pages/InterviewerPage';
 import AITeamLeadPage from './components/pages/AITeamLeadPage';
+import WeeklyTasksPage from './components/pages/WeeklyTasksPage';
+import PerformancePage from './components/pages/PerformancePage';
+import AchievementsPage from './components/pages/AchievementsPage';
 
 function App() {
   return (
@@ -131,6 +134,30 @@ function App() {
               />
               
               {/* New Feature Routes */}
+              <Route 
+                path="/weekly-tasks" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <WeeklyTasksPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/performance" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <PerformancePage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/achievements" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireOnboarding={true}>
+                    <AchievementsPage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/interviewer" 
                 element={

@@ -19,11 +19,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, loading, initialized } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while auth is initializing
-  if (!initialized || loading) {
+  // Show loading spinner only briefly while auth is initializing
+  if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-blue-50">
-        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading your session...</p>
+        </div>
       </div>
     );
   }

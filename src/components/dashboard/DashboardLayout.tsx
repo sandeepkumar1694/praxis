@@ -1,5 +1,5 @@
 import React from 'react';
-import AuthenticatedLayout from '../layout/AuthenticatedLayout';
+import DashboardHeader from './DashboardHeader';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -7,11 +7,12 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
-    <AuthenticatedLayout>
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="min-h-screen bg-dashboard-bg">
+      <DashboardHeader />
+      <main className="container mx-auto px-6 py-8 max-w-7xl">
         {children}
-      </div>
-    </AuthenticatedLayout>
+      </main>
+    </div>
   );
 };
 
